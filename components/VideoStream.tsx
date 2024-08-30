@@ -28,6 +28,7 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [status, setStatus] = useState("");
+  const sendFramesIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 
   useEffect(() => {
@@ -93,6 +94,7 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
   function stopEverything() {
     console.log("Stopping everything...");
     // mountRef.current = false;
+    stopVideoStream()
     const socket = socketRef.current;
     if (socket) {
       console.log("Closing socket");
@@ -122,19 +124,9 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
     }
   };
 
-  const stopVideoStream = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-    // if (socketRef.current) {
-    //   socketRef.current.close();
-    // }
-    setIsStreaming(false);
-    setEmotionMap(null);
-  };
-
   const startSendingFrames = () => {
     const sendVideoFrames = () => {
+      console.log('Sending video frames')
       if (videoRef.current && canvasRef.current && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
         const context = canvasRef.current.getContext('2d');
         if (context) {
@@ -152,8 +144,28 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
       }
     };
 
-    const intervalId = setInterval(sendVideoFrames, 1000);
-    return () => clearInterval(intervalId);
+    sendFramesIntervalRef.current = setInterval(sendVideoFrames, 1000); 
+    // const intervalId = setInterval(sendVideoFrames, 1000);
+    // return () => clearInterval(intervalId);
+  };
+
+  const stopVideoStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    // if (socketRef.current) {
+    //   socketRef.current.close();
+    // }
+    setIsStreaming(false);
+    setEmotionMap(null);
+    // Stop the interval that sends frames
+    if (sendFramesIntervalRef.current) {
+      clearInterval(sendFramesIntervalRef.current);
+      sendFramesIntervalRef.current = null;
+    }
   };
 
 
@@ -196,9 +208,9 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
               />
               <div 
                 onClick={startVideoStream} 
-                className={`absolute inset-0 w-full z-1 h-full rounded bg-orange-200 flex flex-col justify-center items-center  ${isStreaming ? 'hidden' : 'block'}`}
+                className={`absolute inset-0 w-full z-1 h-full rounded bg-orange-200 flex cursor-pointer flex-col justify-center items-center ${isStreaming ? 'hidden' : 'block'}`}
               >
-                <WebcamIcon strokeWidth={1} className='rounded-full size-8 p-1 bg-orange-300'  />
+                <WebcamIcon strokeWidth={1} className='animate-bounce rounded-full size-8 p-1 bg-orange-300'  />
                 <p className='text-sm'> Start Webcam</p>
               </div>
 
