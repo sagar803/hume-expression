@@ -1,0 +1,159 @@
+"use client"
+
+import React, { useState, useEffect, useRef } from 'react';
+import { w3cwebsocket as W3CWebSocket } from 'websocket';
+import { Button } from '@/components/ui/button';
+import { AudioRecorder } from '@/lib/media/audioRecorder';
+import { blobToBase64 } from '@/lib/utilities/blobUtilities';
+import { AudioPrediction } from '@/lib/data/audioPrediction';
+
+const AudioStreamingComponent = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [errorMessage, setErrorMessage] = useState('');
+  const wsRef = useRef<W3CWebSocket | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  const recorderRef = useRef<AudioRecorder | null>(null);
+  const streamWindowLengthMs = 2000;
+  const audioBufferRef = useRef<Blob[]>([]);
+  const mountRef = useRef(true);
+  const numReconnects = useRef(0);
+  const serverReadyRef = useRef(true);
+  const [predictions, setPredictions] = useState<AudioPrediction[]>([]);
+  const [status, setStatus] = useState("");
+  const maxReconnects = 3;
+
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
+  const connectWebSocket = () => {
+    wsRef.current = new W3CWebSocket(`wss://api.hume.ai/v0/stream/models?api_key=${process.env.NEXT_PUBLIC_HUME_API_KEY}`);
+
+    wsRef.current.onopen = async () => {
+      setConnectionStatus('Connected');
+      recorderRef.current = await AudioRecorder.create();
+ 
+      while (mountRef.current) {
+        const blob = await recorderRef.current.record(500);
+        audioBufferRef.current.push(blob);
+        if (serverReadyRef.current) {
+          sendRequest();
+        }
+      }
+  
+    };
+
+    wsRef.current.onmessage = (message) => {
+      console.log('Received:', message.data);
+      // Handle the response from the server here
+    };
+
+    wsRef.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setErrorMessage('WebSocket error occurred');
+    };
+
+    wsRef.current.onclose = (event) => {
+      setConnectionStatus('Disconnected');
+      console.log(`WebSocket closed with code ${event.code}:`, event.reason);
+    };
+  };
+
+  async function sendRequest() {
+    console.log(`Will send ${audioBufferRef.current.length} recorded blobs to server`);
+
+    const socket = wsRef.current;
+
+    if (!socket) {
+      console.log("No socket on state");
+      return;
+    }
+
+    if (socket.readyState === WebSocket.OPEN) {
+      const combinedBlob = new Blob(audioBufferRef.current);
+      serverReadyRef.current = false;
+      audioBufferRef.current = [];
+
+      const encodedBlob = await blobToBase64(combinedBlob);
+      const response = JSON.stringify({
+        data: encodedBlob,
+        models: {
+          ["prasody"]: {},
+        },
+        stream_window_ms: streamWindowLengthMs,
+      });
+
+      socket.send(response);
+    } else {
+      console.log("Socket not open");
+      socket.close();
+    }
+  }
+
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0 && wsRef.current && wsRef.current.readyState === W3CWebSocket.OPEN) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const arrayBuffer = reader.result as ArrayBuffer;
+            const base64Audio = btoa(
+              new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+            );
+            const message = JSON.stringify({
+              data: base64Audio,
+              models: { prosody: {} }
+            });
+            wsRef.current!.send(message);
+          };
+          reader.readAsArrayBuffer(event.data);
+        }
+      };
+
+      mediaRecorderRef.current.start(1000); // Collect data every second
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      setErrorMessage('Error accessing microphone');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  return (
+    <div className="p-4 max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
+      <h2 className="text-2xl font-bold mb-4">Audio Streaming Component</h2>
+      <div className="space-y-4">
+        <div>
+          <Button onClick={connectWebSocket} disabled={connectionStatus === 'Connected'}>
+            Connect to WebSocket
+          </Button>
+          <span className="ml-2">Status: {connectionStatus}</span>
+        </div>
+        <div>
+          <Button onClick={isRecording ? stopRecording : startRecording} disabled={connectionStatus !== 'Connected'}>
+            {isRecording ? 'Stop Recording' : 'Start Recording'}
+          </Button>
+        </div>
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+      </div>
+    </div>
+  );
+};
+
+export default AudioStreamingComponent;
