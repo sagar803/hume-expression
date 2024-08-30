@@ -213,13 +213,13 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
                 </Button>
               )}
             </div>
-            <div className="my-2 flex-col lg:flex-row flex gap-2 mb-4">
+            {/* <div className="my-2 flex-col lg:flex-row flex gap-2 mb-4">
               <Select>
                 <SelectTrigger>
                   <SelectValue placeholder="Select camera" />
                 </SelectTrigger>
                 <SelectContent>
-                  {devices.filter(device => device.kind === 'videoinput').map(device => (
+                  {devices.filter(device => device.kind === 'videoinput' && device.deviceId).map(device => (
                     <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label || `Camera ${device.deviceId.slice(0, 5)}`}
                     </SelectItem>
@@ -231,14 +231,14 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
                   <SelectValue placeholder="Select microphone" />
                 </SelectTrigger>
                 <SelectContent>
-                  {devices.filter(device => device.kind === 'audioinput').map(device => (
+                  {devices.filter(device => device.kind === 'audioinput' && device.deviceId).map(device => (
                     <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label || `Microphone ${device.deviceId.slice(0, 5)}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 
