@@ -301,7 +301,7 @@ const VideoStream = ({activeTab , setActiveTab}: Props) => {
 export default VideoStream;
 
 
-const EmotionRange = ({ emotionMap }) => {
+const EmotionRange = ({ emotionMap } : {emotionMap: EmotionMap}) => {
   const topExpressions = ["Calmness", "Joy", "Amusement", "Anger", "Confusion", "Disgust", "Sadness", "Horror", "Surprise (positive)"];
 
   return (
