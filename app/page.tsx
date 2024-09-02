@@ -5,9 +5,16 @@ import React, { useEffect, useRef, useState } from "react";
 import VideoStream from "@/components/VideoStream";
 import Image from "next/image";
 import AudioStreamingComponent from "@/components/AudioStream";
+import AudioTest from "@/components/AudioTest";
+import FaceBurst from "@/components/FaceBurst";
+import AudioWidget from "@/zdev/AudioWidget";
+import AllCombined from "@/components/AllCombined";
+import Test from "@/zdev/test";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('face')
+  // const [activeTab, setActiveTab] = useState('face')
+
+  // console.log(activeTab)
   // const videoRef = useRef<HTMLVideoElement>(null);
   // const canvasRef = useRef<HTMLCanvasElement>(null);
   // const streamRef = useRef<MediaStream | null>(null);
@@ -45,9 +52,12 @@ export default function Home() {
           <video ref={videoRef} autoPlay playsInline muted className="w-full aspect-video mb-4" />
           <canvas ref={canvasRef} style={{ display: 'none' }} width={640} height={480} />
         </div> */}
-      <VideoStream activeTab={activeTab} setActiveTab={setActiveTab}/>
-      {/* <AudioStreamingComponent modelName="prosody" recordingLengthMs={500} streamWindowLengthMs={5000} /> */}
-    
+
+        {/* {activeTab === 'face' && <VideoStream activeTab={activeTab} setActiveTab={setActiveTab}/> }
+        {activeTab === 'burst' && <AudioWidget activeTab={activeTab} setActiveTab={setActiveTab} modelName="burst" recordingLengthMs={500} streamWindowLengthMs={2000} />}
+        {activeTab === 'prosody' && <AudioWidget activeTab={activeTab} setActiveTab={setActiveTab} modelName="prosody" recordingLengthMs={500} streamWindowLengthMs={5000} />} */}
+        <AllCombined />
+        {/* <Test /> */}
     </div>
   );
 }

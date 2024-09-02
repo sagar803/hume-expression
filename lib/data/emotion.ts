@@ -1,6 +1,10 @@
 export type Emotion = {
   name: EmotionName;
   score: number;
+}
+
+export type EmotionMap = {
+  [key in EmotionName]: number;
 };
 
 export type EmotionName =
@@ -51,4 +55,5 @@ export type EmotionName =
   | "Surprise (positive)"
   | "Sympathy"
   | "Tiredness"
-  | "Triumph";
+  | "Triumph"
+  | string
