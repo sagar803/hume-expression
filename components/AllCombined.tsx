@@ -67,6 +67,7 @@ const AllCombined = () => {
         };
     }, []);
     
+    // Socket functions
     const connect = async () => {
         const socketUrl = `wss://api.hume.ai/v0/stream/models?api_key=${process.env.NEXT_PUBLIC_HUME_API_KEY}`;
 
@@ -120,6 +121,11 @@ const AllCombined = () => {
 
     const socketOnError = async (event: Event) => {
         console.error("Socket failed to connect: ", event);
+        // if(numReconnects.current < maxReconnects) {
+        //     setSocketStatus('Reconnecting');
+        //     numReconnects.current++;
+        //     connect();
+        // }
     }
 
     function disconnect() {
@@ -140,6 +146,7 @@ const AllCombined = () => {
         stopVideoStream();
     }
 
+    // Audio Streaming functions
     const startAudioStream = async () => {
         console.log('clicked start audio stream', activeTab);
         try {
@@ -185,6 +192,7 @@ const AllCombined = () => {
         }
     };
 
+    // Video Streaming functions
     const startVideoStream = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -247,6 +255,7 @@ const AllCombined = () => {
         }
     };
     
+    //others
     const sortedEmotions = React.useMemo(() => {
         if (!emotionMap) return [];
         return Object.entries(emotionMap)
@@ -278,8 +287,8 @@ const AllCombined = () => {
             </div>
             <div className='flex flex-col md:flex-row w-full max-w-7xl justify-center gap-5'>
                 {/* Left Div */}
-                <Card className="lg:w-2/5  shadow-md">
-                    <div className={`ml-6 my-4 flex gap-2 items-center bg-gray-100 border border-gray-300 rounded-xl p-2 px-4 w-fit ${isStreaming ? 'bg-green-300': 'bg-red-300'}`}>
+                <Card className="md:w-2/5  shadow-md">
+                    <div className={`ml-6 my-4 flex gap-2 items-center border rounded-xl p-2 px-4 w-fit transition duration-100 active:scale-95 border-gray-300 shadow-md ${isStreaming ? 'bg-green-300': 'bg-red-300'}`}>
                         <Wifi size={16} color='black'/>
                         <p className={'text-sm'}>Stream : {isStreaming ? 'Connected' : 'Disconnected'}</p>
                     </div>
@@ -336,9 +345,9 @@ const AllCombined = () => {
                 </Card>
 
                 {/* Right Div */}
-                <Card className='lg:w-3/5  shadow-md'>
+                <Card className='md:w-3/5   shadow-md'>
                     <TabsSection activeTab={activeTab} onChangeTab={handleChangeTab} />
-                    <p className='text-sm m-2 p-2 bg-gray-200 rounded-lg'>{summary[activeTab]}</p>
+                    <p className='text-sm  m-2 p-2 bg-gray-200 rounded-lg'>{summary[activeTab]}</p>
 
                     <CardContent className='flex p-2 justify-center min-h-96 gap-2'>
                         <Card className='w-1/2 text-sm'>
@@ -387,14 +396,14 @@ interface ConnectionStatusProps {
 }
 
 export const SocketConnectionStatus: React.FC<ConnectionStatusProps> = ({ isSocketConnected, socketStatus, onConnect, onDisconnect }) => (
-    <Card className='w-full flex justify-between items-center px-10 shadow-md'>
-        <p>Socket Connection:</p>
+    <Card className='text-sm md:text-md w-full flex justify-between items-center px-4 sm:px-10 shadow-md'>
+        <p>Connection status</p>
         <div 
             onClick={isSocketConnected ? onDisconnect : onConnect} 
-            className={`cursor-pointer ml-6 my-4 flex gap-2 items-center bg-gray-100 border border-gray-300 rounded-xl p-2 px-4 w-fit ${isSocketConnected ? 'bg-green-300': 'bg-red-300'}`}
+            className={`w-40 cursor-pointer md:my-4 my-2 flex gap-2 items-center border rounded-xl p-2 px-4 transition duration-100 active:scale-95 border-gray-300 shadow-md ${isSocketConnected ? 'bg-green-300': 'bg-red-300'}`}
         >
             <Wifi size={16} color='black'/>
-            <p className='text-sm'>{socketStatus}</p>
+            <p >{socketStatus}</p>
         </div>
     </Card>
 );
