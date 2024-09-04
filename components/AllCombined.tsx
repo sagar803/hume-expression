@@ -276,7 +276,9 @@ const AllCombined = () => {
         const sendVideoFrames = () => {
             if (video && canvasRef.current && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
                 const context = canvasRef.current.getContext('2d');
-                if (context) {
+                if (context && video) {
+                    canvasRef.current.width = video.videoWidth;
+                    canvasRef.current.height = video.videoHeight;
                     context.drawImage(video, 0, 0, canvasRef.current.width, canvasRef.current.height);
                     const imageData = canvasRef.current.toDataURL('image/jpeg', 0.8);
                     const base64Data = imageData.split(',')[1];
