@@ -59,7 +59,7 @@ const AllCombined = () => {
     const [activeTab, setActiveTab] = useState<TabId>('face')
     const activeTabRef = useRef<string>('face');
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    // const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -283,9 +283,7 @@ const AllCombined = () => {
                     const imageData = canvasRef.current.toDataURL('image/jpeg', 0.8);
                     const base64Data = imageData.split(',')[1];
 
-                    // Display the image
-                    const imgElement = document.getElementById('capturedImage');
-                    setCapturedImage(imageData);
+                    // setCapturedImage(imageData);
                 
                     // Send the image data via WebSocket
                     socketRef.current.send(JSON.stringify({
@@ -370,25 +368,18 @@ const AllCombined = () => {
                 backgroundSize: "10px 10px"
             }}
         >
-            {capturedImage && (
-                <div>
-                <h3>Captured Image:</h3>
-                <img src={capturedImage} alt="Captured" />
-                </div>
-            )}
-
             <div className='w-full max-w-7xl'>
                 <SocketConnectionStatus isSocketConnected={isSocketConnected} socketStatus={socketStatus} onConnect={connect} onDisconnect={disconnect}/>
             </div>
             <div className='flex flex-col md:flex-row w-full max-w-7xl justify-center gap-5'>
                 {/* Left Div */}
                 <Card className="md:w-2/5  shadow-md">
-                    <div className='w-full flex flex-col md:flex-row  justify-around'>
-                        <div className={`mx-6 my-4 flex w-fit md:w-3/5 gap-2 items-center border rounded-xl p-2 px-4 transition duration-100 active:scale-95 border-gray-300 shadow-md ${isStreaming ? 'bg-green-300': 'bg-red-300'}`}>
+                    <div className='w-full flex flex-row justify-between'>
+                        <div className={`mx-6 my-4 flex w-fit gap-2 border rounded-xl p-2 px-4 transition duration-100 active:scale-95 border-gray-300 shadow-md ${isStreaming ? 'bg-green-300': 'bg-red-300'}`}>
                             <Wifi size={16} color='black'/>
                             <p className={'text-sm'}>Stream : {isStreaming ? 'Connected' : 'Disconnected'}</p>
                         </div>
-                        <div className="mx-6 px-2 my-4 flex w-fit md:w-2/5 items-center border-gray-300 border-2 rounded-xl space-x-2 shadow-md">
+                        <div className="mx-6 px-2 my-4 flex w-fit items-center border-gray-300 border-2 rounded-xl space-x-2 shadow-md">
                             <Label>Live</Label>
                             <Switch onClick={handleLiveOrUploadChange} defaultChecked={isLive} />
                         </div>
