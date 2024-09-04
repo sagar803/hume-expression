@@ -53,6 +53,7 @@ const AllCombined = () => {
     const [uploadedVideoDetails, setUploadedVideoDetails] = useState<File | null>(null)
     // const analyzeIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [isLive, setIsLive] = useState<boolean>(true);
+    // const [isOnMobile, setIsOnMobile] = useState<boolean>(false);
     
     
     const isStreamingRef = useRef<Boolean | null>(false);
@@ -61,6 +62,18 @@ const AllCombined = () => {
     const [activeTab, setActiveTab] = useState<TabId>('face')
     const activeTabRef = useRef<string>('face');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // useEffect(() => {
+    //     const checkIfMobile = () => {
+    //       const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    //       setIsOnMobile(isMobile);
+    //     };    
+    //     checkIfMobile();    
+    //     window.addEventListener('resize', checkIfMobile);    
+    //     return () => {
+    //       window.removeEventListener('resize', checkIfMobile);
+    //     };
+    // }, []);
 
     useEffect(() => {
         activeTabRef.current = activeTab;
@@ -257,7 +270,7 @@ const AllCombined = () => {
     // Live Video Stream
     const startVideoStream = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({video: {aspectRatio: 16 / 9}});
           streamRef.current = stream;
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
@@ -291,7 +304,7 @@ const AllCombined = () => {
             }
         };
 
-        sendVideoFramesIntervalRef.current = setInterval(sendVideoFrames, 2000); 
+        sendVideoFramesIntervalRef.current = setInterval(sendVideoFrames, 1000); 
     };
 
     const stopVideoStream = () => {
@@ -337,6 +350,7 @@ const AllCombined = () => {
     }
 
     const handleLiveOrUploadChange = () => {
+        playSound()
         if(isLive) stopVideoStream();
         else handleRemoveUploadedVideo();
         setIsLive(!isLive);
@@ -349,8 +363,19 @@ const AllCombined = () => {
         "prosody": 'Speech prosody is not about the words you say, but the way you say them.' 
     }
 
+    const playSound = () => {
+        const audio = new Audio('/click.wav');
+        audio.play();
+    };
+
     return (
-        <div className='w-full min-h-screen flex flex-col items-center justify-center gap-2'>
+        <div 
+            className="w-full min-h-screen flex flex-col items-center justify-center gap-2"
+            style={{
+                backgroundImage: "radial-gradient(circle, lightgray 1px, transparent 1px)",
+                backgroundSize: "10px 10px"
+            }}
+        >
             <div className='w-full max-w-7xl'>
                 <SocketConnectionStatus isSocketConnected={isSocketConnected} socketStatus={socketStatus} onConnect={connect} onDisconnect={disconnect}/>
             </div>
@@ -576,9 +601,9 @@ const EmotionsLevels  = ({ emotionMap, activeTab, warning } : {emotionMap: Emoti
                         {emotionGroups[activeTab].map(em => (
                             <div key={em} className="flex items-center space-x-3">
                                 <div className="hidden md:flex md:flex-grow">
-                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                    <div className="w-full bg-gray-200 rounded-full h-4">
                                         <div
-                                            className="bg-gray-800 h-3 rounded-s-full transition-all duration-300 ease-in-out" 
+                                            className="bg-gray-800 h-4 rounded-s-full transition-all duration-300 ease-in-out" 
                                             style={{ width: `${emotionMap[em] * 100}%` }}
                                         />
                                     </div>
