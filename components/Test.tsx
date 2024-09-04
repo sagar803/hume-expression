@@ -1,15 +1,20 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const VideoAnalysis = () => {
-    const [socketStatus, setSocketStatus] = useState('Disconnected');
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [emotionMap, setEmotionMap] = useState(null);
-    const [uploadedVideo, setUploadedVideo] = useState(null);
+interface Emotion {
+    name: string;
+    score: number;
+}
 
-    const socketRef = useRef(null);
-    const videoRef = useRef(null);
-    const canvasRef = useRef(null);
-    const analyzeIntervalRef = useRef(null);
+const VideoAnalysis: React.FC = () => {
+    const [socketStatus, setSocketStatus] = useState<string>('Disconnected');
+    const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+    const [emotionMap, setEmotionMap] = useState<Emotion[] | null>(null);
+    const [uploadedVideo, setUploadedVideo] = useState<string | null>(null);
+
+    const socketRef = useRef<WebSocket | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const analyzeIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         connect();
@@ -31,7 +36,7 @@ const VideoAnalysis = () => {
         };
     }, [videoRef.current, uploadedVideo]);
 
-    const connect = async () => {
+    const connect = async (): Promise<void> => {
         const socketUrl = `wss://api.hume.ai/v0/stream/models?api_key=${process.env.NEXT_PUBLIC_HUME_API_KEY}`;
         setSocketStatus('Connecting...');
         try {
@@ -45,7 +50,7 @@ const VideoAnalysis = () => {
         }
     };
 
-    const handleSocketMessage = (event) => {
+    const handleSocketMessage = (event: MessageEvent): void => {
         try {
             const response = JSON.parse(event.data);
             if (response.face && response.face.predictions && response.face.predictions.length > 0) {
@@ -58,20 +63,20 @@ const VideoAnalysis = () => {
         }
     };
 
-    const disconnect = () => {
+    const disconnect = (): void => {
         if (socketRef.current) {
             socketRef.current.close();
         }
     };
 
-    const handleFileUpload = (event) => {
-        const file = event.target.files[0];
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
+        const file = event.target.files?.[0];
         if (file) {
             setUploadedVideo(URL.createObjectURL(file));
         }
     };
 
-    const startVideoAnalysis = () => {
+    const startVideoAnalysis = (): void => {
         if (!uploadedVideo || !socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
             return;
         }
@@ -81,7 +86,7 @@ const VideoAnalysis = () => {
         }
     };
 
-    const stopVideoAnalysis = () => {
+    const stopVideoAnalysis = (): void => {
         setIsAnalyzing(false);
         if (videoRef.current) {
             videoRef.current.pause();
@@ -92,23 +97,23 @@ const VideoAnalysis = () => {
         }
     };
 
-    const handleVideoPlay = () => startSendingFrames();
+    const handleVideoPlay = (): void => startSendingFrames();
 
-    const handleVideoPause = () => {
+    const handleVideoPause = (): void => {
         if (analyzeIntervalRef.current) {
             clearInterval(analyzeIntervalRef.current);
             analyzeIntervalRef.current = null;
         }
     };
 
-    const handleVideoEnd = () => stopVideoAnalysis();
+    const handleVideoEnd = (): void => stopVideoAnalysis();
 
-    const startSendingFrames = () => {
+    const startSendingFrames = (): void => {
         if (analyzeIntervalRef.current) {
             clearInterval(analyzeIntervalRef.current);
         }
 
-        const sendVideoFrames = () => {
+        const sendVideoFrames = (): void => {
             if (videoRef.current && canvasRef.current && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
                 const context = canvasRef.current.getContext('2d');
                 if (context) {
@@ -142,6 +147,7 @@ const VideoAnalysis = () => {
                     {socketStatus}
                 </span>
             </div>
+
             <div className="mb-6">
                 <input 
                     type="file" 
@@ -166,7 +172,6 @@ const VideoAnalysis = () => {
                     Stop Analysis
                 </button>
             </div>
-            <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-1/2 bg-white rounded-lg shadow-md p-4">
                     <h2 className="text-xl font-semibold mb-4">Video Playback</h2>
                     {uploadedVideo ? (
@@ -184,6 +189,7 @@ const VideoAnalysis = () => {
                         </div>
                     )}
                 </div>
+                            <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-1/2 bg-white rounded-lg shadow-md p-4">
                     <h2 className="text-xl font-semibold mb-4">Emotion Analysis</h2>
                     {emotionMap ? (
@@ -202,6 +208,8 @@ const VideoAnalysis = () => {
                     )}
                 </div>
             </div>
+
+
             <canvas ref={canvasRef} style={{ display: 'none' }} width="640" height="480" />
         </div>
     );
