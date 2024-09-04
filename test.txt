@@ -50,6 +50,7 @@ const VideoAnalysis = () => {
             const response = JSON.parse(event.data);
             if (response.face && response.face.predictions && response.face.predictions.length > 0) {
                 setEmotionMap(response.face.predictions[0].emotions);
+                console.log(response)
             } else {
                 setEmotionMap(null);
             }

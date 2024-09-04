@@ -67,7 +67,6 @@ const AllCombined = () => {
         };
     }, []);
     
-    // Socket functions
     const connect = async () => {
         const socketUrl = `wss://api.hume.ai/v0/stream/models?api_key=${process.env.NEXT_PUBLIC_HUME_API_KEY}`;
 
@@ -146,7 +145,6 @@ const AllCombined = () => {
         stopVideoStream();
     }
 
-    // Audio Streaming functions
     const startAudioStream = async () => {
         console.log('clicked start audio stream', activeTab);
         try {
@@ -192,7 +190,6 @@ const AllCombined = () => {
         }
     };
 
-    // Video Streaming functions
     const startVideoStream = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -255,7 +252,6 @@ const AllCombined = () => {
         }
     };
     
-    //others
     const sortedEmotions = React.useMemo(() => {
         if (!emotionMap) return [];
         return Object.entries(emotionMap)
