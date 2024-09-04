@@ -52,15 +52,15 @@ const AllCombined = () => {
     const [uploadedVideo, setUploadedVideo] = useState<string | null>(null);
     const [uploadedVideoDetails, setUploadedVideoDetails] = useState<File | null>(null)
     // const analyzeIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const [isLive, setIsLive] = useState<boolean>(true);
-    
-    
+    const [isLive, setIsLive] = useState<boolean>(true);    
     const isStreamingRef = useRef<Boolean | null>(false);
     const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
     const [isStreaming, setIsStreaming] = useState(false);
     const [activeTab, setActiveTab] = useState<TabId>('face')
     const activeTabRef = useRef<string>('face');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+
 
     useEffect(() => {
         activeTabRef.current = activeTab;
@@ -281,6 +281,11 @@ const AllCombined = () => {
                     const imageData = canvasRef.current.toDataURL('image/jpeg', 0.8);
                     const base64Data = imageData.split(',')[1];
 
+                    // Display the image
+                    const imgElement = document.getElementById('capturedImage');
+                    setCapturedImage(imageData);
+                
+                    // Send the image data via WebSocket
                     socketRef.current.send(JSON.stringify({
                         data: base64Data,
                         models: {
@@ -363,6 +368,13 @@ const AllCombined = () => {
                 backgroundSize: "10px 10px"
             }}
         >
+            {capturedImage && (
+                <div>
+                <h3>Captured Image:</h3>
+                <img src={capturedImage} alt="Captured" />
+                </div>
+            )}
+
             <div className='w-full max-w-7xl'>
                 <SocketConnectionStatus isSocketConnected={isSocketConnected} socketStatus={socketStatus} onConnect={connect} onDisconnect={disconnect}/>
             </div>
