@@ -53,7 +53,6 @@ const AllCombined = () => {
     const [uploadedVideoDetails, setUploadedVideoDetails] = useState<File | null>(null)
     // const analyzeIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [isLive, setIsLive] = useState<boolean>(true);
-    // const [isOnMobile, setIsOnMobile] = useState<boolean>(false);
     
     
     const isStreamingRef = useRef<Boolean | null>(false);
@@ -62,18 +61,6 @@ const AllCombined = () => {
     const [activeTab, setActiveTab] = useState<TabId>('face')
     const activeTabRef = useRef<string>('face');
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // useEffect(() => {
-    //     const checkIfMobile = () => {
-    //       const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
-    //       setIsOnMobile(isMobile);
-    //     };    
-    //     checkIfMobile();    
-    //     window.addEventListener('resize', checkIfMobile);    
-    //     return () => {
-    //       window.removeEventListener('resize', checkIfMobile);
-    //     };
-    // }, []);
 
     useEffect(() => {
         activeTabRef.current = activeTab;
@@ -270,7 +257,7 @@ const AllCombined = () => {
     // Live Video Stream
     const startVideoStream = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({video: {aspectRatio: 16 / 9}});
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
           streamRef.current = stream;
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
