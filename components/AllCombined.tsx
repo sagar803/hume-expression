@@ -13,6 +13,7 @@ import { emotionColors } from '@/lib/utilities/emotionUtilities';
 import TabsSection from './Widgets/tabs';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
+import Expression from './Expression';
 
 type TabId = 'face' | 'burst' | 'prosody';
 
@@ -362,7 +363,7 @@ const AllCombined = () => {
 
     return (
         <div 
-            className="w-full min-h-screen flex flex-col items-center justify-center gap-2"
+            className="w-full min-h-screen flex flex-col items-center justify-start gap-2 pt-10"
             style={{
                 backgroundImage: "radial-gradient(circle, lightgray 1px, transparent 1px)",
                 backgroundSize: "10px 10px"
@@ -474,7 +475,6 @@ const AllCombined = () => {
                 <Card className='md:w-3/5   shadow-md'>
                     <TabsSection activeTab={activeTab} onChangeTab={handleChangeTab} />
                     <p className='text-sm  m-2 p-2 bg-gray-200 rounded-lg'>{summary[activeTab]}</p>
-
                     <CardContent className='flex p-2 justify-center min-h-96 gap-2'>
                         <Card className='w-1/2 text-sm'>
                             <div className='bg-gray-200 h-10 flex gap-1 items-center pl-2'>
@@ -507,6 +507,7 @@ const AllCombined = () => {
                     </CardContent>
                 </Card>
             </div>
+            {sortedEmotions?.length > 0 && <Expression sortedEmotion={sortedEmotions} /> }
         </div>
     );
 }
