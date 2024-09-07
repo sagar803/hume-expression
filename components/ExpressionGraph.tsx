@@ -17,17 +17,36 @@ type Point = {
   score: number;
 }
 
+const colors = [
+  { color: "#000", emotion: "Neutral" },
+  { color: "#c66a26", emotion: "Confusion" },
+  { color: "#998644", emotion: "Doubt" },
+  { color: "#336cff", emotion: "Concentration" },
+  { color: "#a9cce1", emotion: "Interest" },
+  { color: "#a4a4a4", emotion: "Boredom" },
+  { color: "#006c7c", emotion: "Disappointment" },
+  { color: "#a9cce1", emotion: "Calmness" },
+  { color: "#ffd600", emotion: "Joy" },
+];
+
 // @ts-ignore
 const CustomizedDot = (props: any) => {
   const { cx, cy, payload } = props;
-  const size = 2 + (payload.score * 4); // Size ranges from 4 to 12 based on score
+  const size = 2 + (payload.score * 4);
+
+  let color = "hsl(210, 70%, 50%)"
+  colors.forEach((val) => {
+    if (val.emotion === payload.emotion) {
+      color = val.color
+    }
+  })
 
   return (
     <circle
       cx={cx}
       cy={cy}
       r={size}
-      fill="hsl(210, 70%, 50%)"
+      fill={color}
     />
   );
 };

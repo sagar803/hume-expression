@@ -117,6 +117,8 @@ type EmotionColors = {
   [key in EmotionName]: string;
 };
 
+
+
 export const emotionColors: EmotionColors = {
   Admiration: "#ffc58f",
   Adoration: "#ffc6cc",
