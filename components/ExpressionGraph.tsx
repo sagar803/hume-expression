@@ -17,8 +17,24 @@ type Point = {
   score: number;
 }
 
+// @ts-ignore
+const CustomizedDot = (props: any) => {
+  const { cx, cy, payload } = props;
+  const size = 2 + (payload.score * 4); // Size ranges from 4 to 12 based on score
 
-export default function ExpressionGraph({sortedEmotion}: Props) {
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={size}
+      fill="hsl(210, 70%, 50%)"
+    />
+  );
+};
+
+
+
+export default function ExpressionGraph({ sortedEmotion }: Props) {
   const [data, setData] = useState<Point[]>([]);
 
   useEffect(() => {
@@ -42,7 +58,7 @@ export default function ExpressionGraph({sortedEmotion}: Props) {
               break;
             }
           }
-          if(selectedEmotion) {
+          if (selectedEmotion) {
             break;
           }
         }
@@ -97,7 +113,7 @@ export default function ExpressionGraph({sortedEmotion}: Props) {
               dataKey="emotion"
               stroke="hsl(210, 70%, 50%)"
               strokeWidth={2}
-              dot={{ fill: 'hsl(210, 70%, 50%)' }}
+              dot={<CustomizedDot />}
               isAnimationActive={false}
             />
           </LineChart>
