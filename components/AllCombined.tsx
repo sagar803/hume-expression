@@ -15,6 +15,7 @@ import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import Expression from './Expression';
 import ExpressionGraph from './ExpressionGraph';
+import EmotionSpiderChart from './EmotionSpider';
 
 type TabId = 'face' | 'burst' | 'prosody';
 
@@ -508,7 +509,8 @@ const AllCombined = () => {
                     </CardContent>
                 </Card>
             </div>
-            {sortedEmotions?.length > 0 && <ExpressionGraph sortedEmotion={sortedEmotions} />}
+            {/* {sortedEmotions?.length > 0 && <ExpressionGraph sortedEmotion={sortedEmotions} />} */}
+            {sortedEmotions?.length > 0 && <EmotionSpiderChart sortedEmotions={sortedEmotions} />}
         </div>
     );
 }
