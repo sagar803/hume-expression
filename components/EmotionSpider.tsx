@@ -24,7 +24,6 @@ const EmotionSpiderChart: React.FC<Props> = ({ sortedEmotions }) => {
       }
     }
 
-    console.log("i", emotion)
     if (topEmotions.length === 9) {
       break;
     }
