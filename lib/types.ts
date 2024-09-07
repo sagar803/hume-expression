@@ -10,3 +10,24 @@ export const tabs: Tab[] = [
     { id: 'burst', label: 'Vocal Burst' },
     { id: 'prosody', label: 'Speech Prosody' }
 ];
+
+export type EmotionName = 
+  "Disappointment" |
+  "Boredom" |
+  "Confusion" |
+  "Doubt" |
+  "Neutral" |
+  "Calmness" |
+  "Concentration" |
+  "Interest"
+
+export const emotions: EmotionName[] = [
+  "Disappointment",
+  "Boredom",
+  "Confusion",
+  "Doubt",
+  "Neutral",
+  "Calmness",
+  "Concentration",
+  "Interest"
+]

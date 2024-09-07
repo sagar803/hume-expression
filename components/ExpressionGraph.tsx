@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CANONICAL_EMOTION_NAMES } from '@/lib/utilities/emotionUtilities';
+import { EmotionName, emotions } from '@/lib/types';
 
-type EmotionName = string;
 
 interface Props {
   sortedEmotion: {
-    emotion: EmotionName;
+    emotion: string;
     score: number;
   }[]
 }
@@ -18,13 +17,8 @@ type Point = {
   score: number;
 }
 
-const getEmotionColor = (emotion: string) => {
-  const hue = (CANONICAL_EMOTION_NAMES.indexOf(emotion) / CANONICAL_EMOTION_NAMES.length) * 360;
-  return `hsl(${hue}, 70%, 50%)`;
-};
 
-
-export default function ExpressionGraph({ sortedEmotion }: Props) {
+export default function ExpressionGraph({sortedEmotion}: Props) {
   const [data, setData] = useState<Point[]>([]);
 
   useEffect(() => {
@@ -33,24 +27,45 @@ export default function ExpressionGraph({ sortedEmotion }: Props) {
         if (sortedEmotion.length === 0) {
           return prevData;
         }
-        const newPoint: Point = {
-          time: new Date().toLocaleTimeString(),
-          emotion: sortedEmotion[0].emotion as EmotionName,
-          score: sortedEmotion[0].score
-        };
-        const newData = [...prevData, newPoint];
+
+        let selectedEmotion: Point | null = null;
+
+        for (let i = 0; i < sortedEmotion.length; i++) {
+          const emotion = sortedEmotion[i].emotion;
+          for (let j = 0; j < emotions.length; j++) {
+            if (emotion === emotions[j]) {
+              selectedEmotion = {
+                time: new Date().toLocaleTimeString(),
+                emotion: sortedEmotion[i].emotion as EmotionName,
+                score: sortedEmotion[i].score
+              }
+              break;
+            }
+          }
+          if(selectedEmotion) {
+            break;
+          }
+        }
+
+        if (!selectedEmotion) {
+          return prevData;
+        }
+
+
+        const newData = [...prevData, selectedEmotion];
         return newData.slice(-8);
       });
     }, 1000);
+
     return () => clearInterval(interval);
   }, [sortedEmotion]);
 
   return (
-    <Card className="w-full h-full max-w-6xl bg-gradient-to-br from-blue-50 to-purple-50">
+    <Card className="w-full h-full max-w-6xl m-2 bg-gradient-to-br from-blue-50 to-purple-50">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center text-gray-800">Emotion Flow Visualization</CardTitle>
       </CardHeader>
-      <CardContent className="w-full h-[2200px] max-w-6xl bg-white p-2">
+      <CardContent className="w-full h-[500px] max-w-6xl m-2 ">
         <ResponsiveContainer width="97%" height="97%">
           <LineChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 80 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -62,8 +77,8 @@ export default function ExpressionGraph({ sortedEmotion }: Props) {
             <YAxis
               type="category"
               dataKey="emotion"
-              domain={CANONICAL_EMOTION_NAMES}
-              ticks={CANONICAL_EMOTION_NAMES}
+              domain={emotions}
+              ticks={emotions}
             />
             <Tooltip content={({ active, payload }) => {
               if (active && payload && payload.length) {
