@@ -13,6 +13,9 @@ import { emotionColors } from '@/lib/utilities/emotionUtilities';
 import TabsSection from './Widgets/tabs';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
+import Expression from './Expression';
+import ExpressionGraph from './ExpressionGraph';
+import EmotionSpiderChart from './EmotionSpider';
 
 type TabId = 'face' | 'burst' | 'prosody';
 
@@ -52,7 +55,7 @@ const AllCombined = () => {
     const [uploadedVideo, setUploadedVideo] = useState<string | null>(null);
     const [uploadedVideoDetails, setUploadedVideoDetails] = useState<File | null>(null)
     // const analyzeIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const [isLive, setIsLive] = useState<boolean>(true);    
+    const [isLive, setIsLive] = useState<boolean>(true);
     const isStreamingRef = useRef<Boolean | null>(false);
     const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
     const [isStreaming, setIsStreaming] = useState(false);
@@ -123,7 +126,7 @@ const AllCombined = () => {
 
     const handleVideoEnd = (): void => stopUploadedVideoStream();
 
-       
+
     const handleRemoveUploadedVideo = () => {
         stopUploadedVideoStream();
         setUploadedVideo(null);
@@ -152,7 +155,7 @@ const AllCombined = () => {
         setIsSocketConnected(true);
     }
 
-    const socketOnMessage = async (event: MessageEvent) =>  {
+    const socketOnMessage = async (event: MessageEvent) => {
         const data = JSON.parse(event.data as string);
         if (data[activeTabRef.current] && data[activeTabRef.current].predictions && data[activeTabRef.current].predictions.length > 0) {
             const emotions: Emotion[] = data[activeTabRef.current].predictions[0].emotions;
@@ -160,7 +163,7 @@ const AllCombined = () => {
             const map: EmotionMap = {};
             emotions.forEach((emotion: Emotion) => map[emotion.name] = emotion.score);
             setEmotionMap(map);
-        } 
+        }
         else {
             const warning = data[activeTabRef.current]?.warning || "";
             console.log("warning:", warning)
@@ -168,8 +171,8 @@ const AllCombined = () => {
             setEmotionMap(null)
         }
 
-        if(isStreamingRef.current) {
-            if(activeTabRef.current != 'face'){
+        if (isStreamingRef.current) {
+            if (activeTabRef.current != 'face') {
                 sendAudio();
             }
         }
@@ -199,7 +202,7 @@ const AllCombined = () => {
         if (socket) {
             console.log("Closing socket");
             socket.close();
-            if(socket.readyState === WebSocket.CLOSING){                
+            if (socket.readyState === WebSocket.CLOSING) {
                 setSocketStatus('Closing...');
                 socketRef.current = null;
             }
@@ -221,15 +224,15 @@ const AllCombined = () => {
         }
     };
 
-    const sendAudio = async () => {             
+    const sendAudio = async () => {
         if (recorderRef && recorderRef.current && socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             console.log("Sending audio frames...")
             const blob = await recorderRef.current.record(500);
             audioBufferRef.current.push(blob);
             const combinedBlob = new Blob(audioBufferRef.current);
-    
+
             audioBufferRef.current = [];
-    
+
             const encodedBlob = await blobToBase64(combinedBlob);
             const response = JSON.stringify({
                 data: encodedBlob,
@@ -257,17 +260,17 @@ const AllCombined = () => {
     // Live Video Stream
     const startVideoStream = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          streamRef.current = stream;
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-          isStreamingRef.current = true;
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+            isStreamingRef.current = true;
 
-          setIsStreaming(true)
-          startSendingFrames();
+            setIsStreaming(true)
+            startSendingFrames();
         } catch (error) {
-          console.error('Error accessing camera:', error);
+            console.error('Error accessing camera:', error);
         }
     };
 
@@ -284,7 +287,7 @@ const AllCombined = () => {
                     const base64Data = imageData.split(',')[1];
 
                     // setCapturedImage(imageData);
-                
+
                     // Send the image data via WebSocket
                     socketRef.current.send(JSON.stringify({
                         data: base64Data,
@@ -296,12 +299,12 @@ const AllCombined = () => {
             }
         };
 
-        sendVideoFramesIntervalRef.current = setInterval(sendVideoFrames, 1000); 
+        sendVideoFramesIntervalRef.current = setInterval(sendVideoFrames, 1000);
     };
 
     const stopVideoStream = () => {
         console.log('Stopping video stream')
-    // Stop the sending frames interval
+        // Stop the sending frames interval
         isStreamingRef.current = false;
 
         if (streamRef.current) {
@@ -321,19 +324,19 @@ const AllCombined = () => {
             sendVideoFramesIntervalRef.current = null;
         }
     };
-    
+
     // Others
     const sortedEmotions = React.useMemo(() => {
         if (!emotionMap) return [];
         return Object.entries(emotionMap)
-        .sort(([, a], [, b]) => b - a)
-        .map(([emotion, score]) => ({ emotion, score }));
+            .sort(([, a], [, b]) => b - a)
+            .map(([emotion, score]) => ({ emotion, score }));
     }, [emotionMap]);
 
-    const handleChangeTab = (tabId : TabId) => {
-        if(tabId !== 'face' && activeTab !== 'face') stopAudioStream();
+    const handleChangeTab = (tabId: TabId) => {
+        if (tabId !== 'face' && activeTab !== 'face') stopAudioStream();
         else if (activeTab === 'face') stopVideoStream();
-        else if(tabId === 'face') stopAudioStream();
+        else if (tabId === 'face') stopAudioStream();
 
         activeTabRef.current = tabId;
         setActiveTab(tabId)
@@ -343,7 +346,7 @@ const AllCombined = () => {
 
     const handleLiveOrUploadChange = () => {
         playSound()
-        if(isLive) stopVideoStream();
+        if (isLive) stopVideoStream();
         else handleRemoveUploadedVideo();
         setIsLive(!isLive);
         setEmotionMap(null)
@@ -352,7 +355,7 @@ const AllCombined = () => {
     const summary: { [key: string]: string } = {
         "face": 'Explore the diverse facial expressions that convey distinct meanings',
         "burst": 'These are non-linguistic vocal utterances, including laughs, sighs, oohs, ahhs, umms, gasps, and groans.',
-        "prosody": 'Speech prosody is not about the words you say, but the way you say them.' 
+        "prosody": 'Speech prosody is not about the words you say, but the way you say them.'
     }
 
     const playSound = () => {
@@ -361,22 +364,22 @@ const AllCombined = () => {
     };
 
     return (
-        <div 
-            className="w-full min-h-screen flex flex-col items-center justify-center gap-2"
+        <div
+            className="w-full min-h-screen flex flex-col items-center justify-start gap-2 pt-10"
             style={{
                 backgroundImage: "radial-gradient(circle, lightgray 1px, transparent 1px)",
                 backgroundSize: "10px 10px"
             }}
         >
             <div className='w-full max-w-7xl'>
-                <SocketConnectionStatus isSocketConnected={isSocketConnected} socketStatus={socketStatus} onConnect={connect} onDisconnect={disconnect}/>
+                <SocketConnectionStatus isSocketConnected={isSocketConnected} socketStatus={socketStatus} onConnect={connect} onDisconnect={disconnect} />
             </div>
             <div className='flex flex-col md:flex-row w-full max-w-7xl justify-center gap-5'>
                 {/* Left Div */}
                 <Card className="md:w-2/5  shadow-md">
                     <div className='w-full flex flex-row justify-between'>
-                        <div className={`mx-6 my-4 flex w-fit gap-2 border rounded-xl p-2 px-4 transition duration-100 active:scale-95 border-gray-300 shadow-md ${isStreaming ? 'bg-green-300': 'bg-red-300'}`}>
-                            <Wifi size={16} color='black'/>
+                        <div className={`mx-6 my-4 flex w-fit gap-2 border rounded-xl p-2 px-4 transition duration-100 active:scale-95 border-gray-300 shadow-md ${isStreaming ? 'bg-green-300' : 'bg-red-300'}`}>
+                            <Wifi size={16} color='black' />
                             <p className={'text-sm'}>Stream : {isStreaming ? 'Connected' : 'Disconnected'}</p>
                         </div>
                         <div className="mx-6 px-2 my-4 flex w-fit items-center border-gray-300 border-2 rounded-xl space-x-2 shadow-md">
@@ -390,9 +393,9 @@ const AllCombined = () => {
                             {activeTab === 'face' ? (
                                 <>
                                     {!isLive && uploadedVideo ? (
-                                        <video 
-                                            ref={videoRef} 
-                                            controls 
+                                        <video
+                                            ref={videoRef}
+                                            controls
                                             className="w-full rounded"
                                         >
                                             <source src={uploadedVideo} type="video/mp4" />
@@ -400,43 +403,43 @@ const AllCombined = () => {
                                         </video>
                                     ) : (
                                         <div onClick={() => fileInputRef.current?.click()} className="absolute inset-0 w-full z-1 h-full rounded bg-orange-200 flex cursor-pointer flex-col justify-center items-center">
-                                            <input 
-                                                type="file" 
+                                            <input
+                                                type="file"
                                                 ref={fileInputRef}
-                                                accept="video/*" 
-                                                onChange={handleFileUpload} 
+                                                accept="video/*"
+                                                onChange={handleFileUpload}
                                                 className="size-full border-0 hidden"
                                             />
-                                            <Upload strokeWidth={1} className='animate-bounce rounded-full size-8 p-1 bg-orange-300'  />
+                                            <Upload strokeWidth={1} className='animate-bounce rounded-full size-8 p-1 bg-orange-300' />
                                             <p className='text-sm select-none'>Upload Video</p>
                                         </div>
                                     )}
                                     {isLive && (
-                                        <video 
-                                            ref={videoRef} 
-                                            autoPlay 
-                                            playsInline 
-                                            muted 
-                                            className={`absolute inset-0 w-full h-full object-cover rounded-lg ${isStreaming ? 'block' : 'hidden'}`} 
+                                        <video
+                                            ref={videoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className={`absolute inset-0 w-full h-full object-cover rounded-lg ${isStreaming ? 'block' : 'hidden'}`}
                                         />
                                     )}
-                                    <canvas 
-                                        ref={canvasRef} 
-                                        className={`absolute inset-0 w-full h-full hidden`} 
+                                    <canvas
+                                        ref={canvasRef}
+                                        className={`absolute inset-0 w-full h-full hidden`}
                                     />
                                     {isLive && (
-                                        <div 
-                                            onClick={startVideoStream} 
+                                        <div
+                                            onClick={startVideoStream}
                                             className={`absolute inset-0 w-full z-1 h-full rounded bg-orange-200 flex cursor-pointer flex-col justify-center items-center ${isStreaming ? 'hidden' : 'block'}`}
                                         >
-                                            <WebcamIcon strokeWidth={1} className='animate-bounce rounded-full size-8 p-1 bg-orange-300'  />
+                                            <WebcamIcon strokeWidth={1} className='animate-bounce rounded-full size-8 p-1 bg-orange-300' />
                                             <p className='text-sm'>Start Webcam</p>
                                         </div>
                                     )}
                                     {!isLive && (
-                                        <div className='flex p-2 justify-between border-2 rounded shadow-lg'> 
+                                        <div className='flex p-2 justify-between border-2 rounded shadow-lg'>
                                             <span className='text-sm'>{uploadedVideoDetails?.name}</span>
-                                            <CircleX 
+                                            <CircleX
                                                 strokeWidth={1}
                                                 className='cursor-pointer'
                                                 onClick={handleRemoveUploadedVideo}
@@ -444,28 +447,28 @@ const AllCombined = () => {
                                         </div>
                                     )}
                                     {isLive && isStreaming && (
-                                        <Button 
-                                            variant="destructive" 
-                                            size="sm" 
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
                                             className="rounded-full absolute bottom-2 left-2"
                                             onClick={stopVideoStream}
-                                            >
-                                                <Pause strokeWidth={1} fill='white'/>
+                                        >
+                                            <Pause strokeWidth={1} fill='white' />
                                         </Button>
                                     )}
                                 </>
-                                ) : (
-                                    <div 
-                                        onClick={isStreaming ? stopAudioStream : startAudioStream } 
-                                        className={`absolute inset-0 w-full z-1 h-full rounded bg-orange-200 flex cursor-pointer flex-col justify-center items-center`}
-                                    >
-                                        {isStreaming 
-                                            ? <Pause strokeWidth={1} className={`rounded-full size-8 p-1 bg-orange-300 ${isStreaming ? 'animate-pulse' : ''}`}/> 
-                                            : <Mic strokeWidth={1} className={`rounded-full size-8 p-1 bg-orange-300 ${isStreaming ? '' : 'animate-bounce'}`}  /> 
-                                        }
-                                        <p className='text-sm'>{!isStreaming ? "Connect Audio" : "Pause"}</p>
-                                    </div>
-                                )}
+                            ) : (
+                                <div
+                                    onClick={isStreaming ? stopAudioStream : startAudioStream}
+                                    className={`absolute inset-0 w-full z-1 h-full rounded bg-orange-200 flex cursor-pointer flex-col justify-center items-center`}
+                                >
+                                    {isStreaming
+                                        ? <Pause strokeWidth={1} className={`rounded-full size-8 p-1 bg-orange-300 ${isStreaming ? 'animate-pulse' : ''}`} />
+                                        : <Mic strokeWidth={1} className={`rounded-full size-8 p-1 bg-orange-300 ${isStreaming ? '' : 'animate-bounce'}`} />
+                                    }
+                                    <p className='text-sm'>{!isStreaming ? "Connect Audio" : "Pause"}</p>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -474,7 +477,6 @@ const AllCombined = () => {
                 <Card className='md:w-3/5   shadow-md'>
                     <TabsSection activeTab={activeTab} onChangeTab={handleChangeTab} />
                     <p className='text-sm  m-2 p-2 bg-gray-200 rounded-lg'>{summary[activeTab]}</p>
-
                     <CardContent className='flex p-2 justify-center min-h-96 gap-2'>
                         <Card className='w-1/2 text-sm'>
                             <div className='bg-gray-200 h-10 flex gap-1 items-center pl-2'>
@@ -482,9 +484,9 @@ const AllCombined = () => {
                                 <h2 className=" font-semibold text-gray-700">Top Emotions List</h2>
                             </div>
                             <div className="flex flex-col gap-2 h-96 overflow-y-auto p-2">
-                                { emotionMap && sortedEmotions 
+                                {emotionMap && sortedEmotions
                                     ? (
-                                        sortedEmotions.slice(0,7).map(({ emotion, score }, index) => (
+                                        sortedEmotions.slice(0, 7).map(({ emotion, score }, index) => (
                                             <div key={emotion} className="scale-90 md:scale-100 flex items-center justify-between border-2 bg-gray-100 rounded-full p-2">
                                                 <div className="flex gap-1 items-center">
                                                     <span className='hidden sm:block w-4'>{index + 1}</span>
@@ -496,17 +498,19 @@ const AllCombined = () => {
                                                 </div>
                                                 <span>{score.toFixed(2)}</span>
                                             </div>
-                                        ))        
+                                        ))
                                     )
                                     : (warning.length > 0 && <p className='text-center flex items-center justify-center h-full'>{warning}</p>)
                                 }
 
                             </div>
                         </Card>
-                        <EmotionsLevels  warning={warning} emotionMap={emotionMap} activeTab={activeTab} />
+                        <EmotionsLevels warning={warning} emotionMap={emotionMap} activeTab={activeTab} />
                     </CardContent>
                 </Card>
             </div>
+            {sortedEmotions?.length > 0 && <ExpressionGraph sortedEmotion={sortedEmotions} />}
+            {sortedEmotions?.length > 0 && <EmotionSpiderChart sortedEmotions={sortedEmotions} />}
         </div>
     );
 }
@@ -524,11 +528,11 @@ interface ConnectionStatusProps {
 export const SocketConnectionStatus: React.FC<ConnectionStatusProps> = ({ isSocketConnected, socketStatus, onConnect, onDisconnect }) => (
     <Card className='text-sm md:text-md w-full flex justify-between items-center px-4 sm:px-10 shadow-md'>
         <p>Connection status</p>
-        <div 
-            onClick={isSocketConnected ? onDisconnect : onConnect} 
-            className={`w-40 cursor-pointer md:my-4 my-2 flex gap-2 items-center border rounded-xl p-2 px-4 transition duration-100 active:scale-95 border-gray-300 shadow-md ${isSocketConnected ? 'bg-green-300': 'bg-red-300'}`}
+        <div
+            onClick={isSocketConnected ? onDisconnect : onConnect}
+            className={`w-40 cursor-pointer md:my-4 my-2 flex gap-2 items-center border rounded-xl p-2 px-4 transition duration-100 active:scale-95 border-gray-300 shadow-md ${isSocketConnected ? 'bg-green-300' : 'bg-red-300'}`}
         >
-            <Wifi size={16} color='black'/>
+            <Wifi size={16} color='black' />
             <p >{socketStatus}</p>
         </div>
     </Card>
@@ -536,79 +540,79 @@ export const SocketConnectionStatus: React.FC<ConnectionStatusProps> = ({ isSock
 
 
 
-const EmotionsLevels  = ({ emotionMap, activeTab, warning } : {emotionMap: EmotionMap | null, activeTab: TabId, warning: string}) => {
+const EmotionsLevels = ({ emotionMap, activeTab, warning }: { emotionMap: EmotionMap | null, activeTab: TabId, warning: string }) => {
 
     const emotionGroups = {
         face: [
-          'Amusement',
-          'Anger',
-          'Awe',
-          'Boredom',
-          'Calmness',
-          'Contempt',
-          'Disgust',
-          'Joy',
-          'Sadness',
-          'Tiredness'
+            'Amusement',
+            'Anger',
+            'Awe',
+            'Boredom',
+            'Calmness',
+            'Contempt',
+            'Disgust',
+            'Joy',
+            'Sadness',
+            'Tiredness'
         ],
         burst: [
-          'Anger',
-          'Anxiety',
-          'Craving',
-          'Distress',
-          'Ecstasy',
-          'Excitement',
-          'Fear',
-          'Horror',
-          'Relief',
-          'Triumph'
+            'Anger',
+            'Anxiety',
+            'Craving',
+            'Distress',
+            'Ecstasy',
+            'Excitement',
+            'Fear',
+            'Horror',
+            'Relief',
+            'Triumph'
         ],
         prosody: [
-          'Admiration',
-          'Calmness',
-          'Concentration',
-          'Determination',
-          'Empathic Pain',
-          'Interest',
-          'Realization',
-          'Sadness',
-          'Satisfaction',
-          'Contemplation'
+            'Admiration',
+            'Calmness',
+            'Concentration',
+            'Determination',
+            'Empathic Pain',
+            'Interest',
+            'Realization',
+            'Sadness',
+            'Satisfaction',
+            'Contemplation'
         ]
-      };
-      
-//   const topExpressions = ["Calmness", "Joy", "Amusement", "Anger", "Confusion", "Disgust", "Sadness", "Horror", "Surprise (positive)"];
+    };
 
-//   if(emotionMap === null) { return }
-  return (
-    <Card className='w-1/2 text-sm'>
-        <div className='bg-gray-200 h-10 flex gap-2 items-center pl-2'>
-            <Rows2 strokeWidth={1} color='gray' size={16} />
-            <h2 className="text-sm font-semibold text-gray-700">Emotions Levels</h2>
-        </div>
-        <div className="h-96 overflow-y-auto pr-2">
-            { emotionMap 
-                ? (
-                    <div className="w-full p-2 space-y-3">
-                        {emotionGroups[activeTab].map(em => (
-                            <div key={em} className="flex items-center space-x-3">
-                                <div className="hidden md:flex md:flex-grow">
-                                    <div className="w-full bg-gray-200 rounded-full h-4">
-                                        <div
-                                            className="bg-gray-800 h-4 rounded-s-full transition-all duration-300 ease-in-out" 
-                                            style={{ width: `${emotionMap[em] * 100}%` }}
-                                        />
+    //   const topExpressions = ["Calmness", "Joy", "Amusement", "Anger", "Confusion", "Disgust", "Sadness", "Horror", "Surprise (positive)"];
+
+    //   if(emotionMap === null) { return }
+    return (
+        <Card className='w-1/2 text-sm'>
+            <div className='bg-gray-200 h-10 flex gap-2 items-center pl-2'>
+                <Rows2 strokeWidth={1} color='gray' size={16} />
+                <h2 className="text-sm font-semibold text-gray-700">Emotions Levels</h2>
+            </div>
+            <div className="h-96 overflow-y-auto pr-2">
+                {emotionMap
+                    ? (
+                        <div className="w-full p-2 space-y-3">
+                            {emotionGroups[activeTab].map(em => (
+                                <div key={em} className="flex items-center space-x-3">
+                                    <div className="hidden md:flex md:flex-grow">
+                                        <div className="w-full bg-gray-200 rounded-full h-4">
+                                            <div
+                                                className="bg-gray-800 h-4 rounded-s-full transition-all duration-300 ease-in-out"
+                                                style={{ width: `${emotionMap[em] * 100}%` }}
+                                            />
+                                        </div>
                                     </div>
+                                    <div className="w-24 sm:w-28 text-xs sm:text-sm font-medium truncate">{em}</div>
+                                    <span className='text-xs md:hidden'>{`${(emotionMap[em] * 100).toFixed(2)}%`}</span>
                                 </div>
-                                <div className="w-24 sm:w-28 text-xs sm:text-sm font-medium truncate">{em}</div>
-                                <span className='text-xs md:hidden'>{`${(emotionMap[em] * 100).toFixed(2)}%`}</span>
-                            </div>
-                        ))}
-                    </div>
-                ) : (warning.length > 0 && <p className='text-center flex items-center justify-center h-full'>{warning}</p>)
-            }
-        </div>
-    </Card>
-  );
+                            ))}
+                        </div>
+                    ) : (warning.length > 0 && <p className='text-center flex items-center justify-center h-full'>{warning}</p>)
+                }
+            </div>
+        </Card>
+    );
 };
 
